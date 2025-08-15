@@ -5,8 +5,11 @@ import { searchBooks } from "@/lib/googleBooks";
 
 export default async function SearchPage({
   searchParams,
-}: { searchParams: { q?: string } }) {
-  const q = (searchParams.q || "").trim();
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
+  const sp = await searchParams;              // con await
+  const q = (sp.q || "").trim();
   const items = q ? await searchBooks(q) : [];
 
   return (
@@ -23,7 +26,8 @@ export default async function SearchPage({
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {items.map((b: any) => {
             const v = b.volumeInfo ?? {};
-            const img = v.imageLinks?.thumbnail || v.imageLinks?.smallThumbnail;
+            const raw = v.imageLinks?.thumbnail || v.imageLinks?.smallThumbnail || "";
+            const img = raw.replace(/^http:\/\//, "https://");
             return (
               <Card key={b.id} className="overflow-hidden">
                 <CardHeader>
@@ -35,12 +39,7 @@ export default async function SearchPage({
                 <CardContent className="flex gap-3">
                   <div className="relative w-20 h-28 bg-muted rounded-md overflow-hidden shrink-0">
                     {img && (
-                      <Image
-                        src={img}
-                        alt={v.title || "cover"}
-                        fill
-                        className="object-cover"
-                      />
+                      <Image src={img} alt={v.title || "cover"} fill className="object-cover" />
                     )}
                   </div>
                   <div className="text-sm">
