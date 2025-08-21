@@ -26,7 +26,7 @@ export default async function SearchPage({
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {items.map((b: any) => {
             const v = b.volumeInfo ?? {};
-            const raw = v.imageLinks?.thumbnail || v.imageLinks?.smallThumbnail || "";
+            const raw = v.imageLinks?.large || v.imageLinks?.medium || v.imageLinks?.thumbnail || v.imageLinks?.smallThumbnail || "";
             const img = raw.replace(/^http:\/\//, "https://");
             return (
               <Card key={b.id} className="overflow-hidden">
