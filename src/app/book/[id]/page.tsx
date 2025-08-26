@@ -15,7 +15,7 @@ export default async function BookPage({
     v.imageLinks?.large ||
     v.imageLinks?.medium ||
     v.imageLinks?.thumbnail ||
-    v.imageLinks?.smallThumbnail ||
+    v.imageLinks?.largeThumbnail ||
     "";
   const img = raw.replace(/^http:\/\//, "https://");
 
@@ -52,7 +52,7 @@ export default async function BookPage({
       {v.description && (
         <article className="prose max-w-none">
           <h2>Descripción</h2>
-          <p dangerouslySetInnerHTML={{ __html: v.description }} />
+          <p suppressHydrationWarning dangerouslySetInnerHTML={{ __html: v.description }} />
         </article>
       )}
 
