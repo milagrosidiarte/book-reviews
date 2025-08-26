@@ -39,6 +39,7 @@
     "tw-animate-css": "^1.3.6",
     "typescript": "^5",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "whatwg-fetch": "^3.6.20"
   }
 }
