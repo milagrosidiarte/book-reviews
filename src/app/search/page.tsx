@@ -6,10 +6,9 @@ import { searchBooks } from "@/lib/googleBooks";
 export default async function SearchPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: { q?: string };
 }) {
-  const sp = await searchParams;              // con await
-  const q = (sp.q || "").trim();
+  const q = (searchParams.q || "").trim();
   const items = q ? await searchBooks(q) : [];
 
   return (
@@ -19,15 +18,23 @@ export default async function SearchPage({
       </h2>
 
       {!q ? (
-        <p className="text-muted-foreground">Volvé al Home e ingresá una consulta.</p>
+        <p className="text-muted-foreground">
+          Volvé al Home e ingresá una consulta.
+        </p>
       ) : items.length === 0 ? (
         <p className="text-muted-foreground">No se encontraron libros.</p>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {items.map((b: any) => {
             const v = b.volumeInfo ?? {};
-            const raw = v.imageLinks?.large || v.imageLinks?.medium || v.imageLinks?.thumbnail || v.imageLinks?.smallThumbnail || "";
+            const raw =
+              v.imageLinks?.large ||
+              v.imageLinks?.medium ||
+              v.imageLinks?.thumbnail ||
+              v.imageLinks?.smallThumbnail ||
+              "";
             const img = raw.replace(/^http:\/\//, "https://");
+
             return (
               <Card key={b.id} className="overflow-hidden">
                 <CardHeader>
@@ -39,12 +46,20 @@ export default async function SearchPage({
                 <CardContent className="flex gap-3">
                   <div className="relative w-20 h-28 bg-muted rounded-md overflow-hidden shrink-0">
                     {img && (
-                      <Image src={img} alt={v.title || "cover"} fill className="object-cover" />
+                      <Image
+                        src={img}
+                        alt={v.title || "cover"}
+                        fill
+                        className="object-cover"
+                      />
                     )}
                   </div>
                   <div className="text-sm">
                     <p className="line-clamp-3">{v.description}</p>
-                    <Link href={`/book/${b.id}`} className="underline mt-2 inline-block">
+                    <Link
+                      href={`/book/${b.id}`}
+                      className="underline mt-2 inline-block"
+                    >
                       Ver detalles
                     </Link>
                   </div>

@@ -5,9 +5,10 @@ import { v4 as uuid } from "uuid";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { StarRating } from "./StarRating";
+import { StarRatingClient } from "./StarRatingClient";
 import { addReview, getReviews, voteReview } from "@/lib/storage";
 import type { Review } from "@/lib/types";
+import { StarRatingStatic } from "./StarRatingStatic";
 
 export default function ReviewSection({ bookId }: { bookId: string }) {
   const [list, setList] = useState<Review[]>([]);
@@ -48,7 +49,7 @@ export default function ReviewSection({ bookId }: { bookId: string }) {
         <h3 className="text-lg font-semibold mb-2">Escribir reseña</h3>
         <div className="flex items-center gap-3 mb-3">
           <span className="text-sm">Tu calificación:</span>
-          <StarRating value={stars} onChange={setStars} />
+          <StarRatingClient value={stars} onChange={setStars} />
           <span className="text-sm text-muted-foreground">{stars}/5</span>
         </div>
         <div className="flex gap-2">
@@ -64,7 +65,7 @@ export default function ReviewSection({ bookId }: { bookId: string }) {
       {/* Promedio */}
       <div className="flex items-center gap-3">
         <span className="font-medium">Promedio comunidad:</span>
-        <StarRating value={Math.round(avg) as 1|2|3|4|5} />
+        <StarRatingStatic value={Math.round(avg) as 1|2|3|4|5} />
         <span className="text-sm text-muted-foreground">
           {avg ? avg.toFixed(1) : "—"} ({list.length} reseñas)
         </span>
@@ -81,7 +82,7 @@ export default function ReviewSection({ bookId }: { bookId: string }) {
               <Card key={r.id}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
-                    <StarRating value={r.stars} />
+                    <StarRatingStatic value={r.stars} />
                     <span className="text-xs text-muted-foreground">
                       {new Date(r.createdAt).toLocaleString()}
                     </span>

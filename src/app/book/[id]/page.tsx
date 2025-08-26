@@ -5,20 +5,32 @@ import ReviewSection from "@/components/ui/ReviewSection";
 export default async function BookPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: { id: string };
 }) {
-  const { id } = await params;           //await params
+  const { id } = params; // directo, sin await
   const book = await getBook(id);
 
   const v = book.volumeInfo ?? {};
-  const raw = v.imageLinks?.large || v.imageLinks?.medium || v.imageLinks?.thumbnail || v.imageLinks?.smallThumbnail || "";
+  const raw =
+    v.imageLinks?.large ||
+    v.imageLinks?.medium ||
+    v.imageLinks?.thumbnail ||
+    v.imageLinks?.smallThumbnail ||
+    "";
   const img = raw.replace(/^http:\/\//, "https://");
 
   return (
     <section className="space-y-6 py-6">
       <div className="flex flex-col md:flex-row gap-6">
         <div className="relative w-44 h-64 bg-muted rounded-md overflow-hidden shrink-0">
-          {img && <Image src={img} alt={v.title || "cover"} fill className="object-cover" />}
+          {img && (
+            <Image
+              src={img}
+              alt={v.title || "cover"}
+              fill
+              className="object-cover"
+            />
+          )}
         </div>
 
         <div className="space-y-2">
@@ -30,7 +42,9 @@ export default async function BookPage({
             {v.publishedDate && <span>Publicado: {v.publishedDate}</span>}
             {v.publisher && <span>· {v.publisher}</span>}
             {v.pageCount && <span>· {v.pageCount} págs.</span>}
-            {v.categories?.length ? <span>· {v.categories.join(", ")}</span> : null}
+            {v.categories?.length ? (
+              <span>· {v.categories.join(", ")}</span>
+            ) : null}
           </div>
         </div>
       </div>

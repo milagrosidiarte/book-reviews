@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 
-export function StarRating({
+export function StarRatingClient({
   value,
   onChange,
   size = 22,

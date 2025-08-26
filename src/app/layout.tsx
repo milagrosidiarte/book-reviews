@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Toaster } from "sonner";
 import Link from "next/link";
+import { ToasterProvider } from "@/components/ui/ToasterProvider";
 
 export const metadata: Metadata = {
   title: "Book Reviews",
@@ -25,7 +25,7 @@ export default function RootLayout({
           </nav>
         </header>
         <main className="max-w-5xl mx-auto p-4">{children}</main>
-        <Toaster position="top-right" />
+        <ToasterProvider />
       </body>
     </html>
   );

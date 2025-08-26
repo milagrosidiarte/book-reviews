@@ -1,39 +1,44 @@
-"use client";
-
-import { useRouter } from "next/navigation";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
 import Link from "next/link";
 
 export default function HomePage() {
-  const [q, setQ] = useState("");
-  const router = useRouter();
-
-  function go() {
-    const query = q.trim();
-    if (!query) return;
-    router.push(`/search?q=${encodeURIComponent(query)}`);
-  }
-
   return (
-   <section className="space-y-6 py-10">
+    <section className="space-y-6 py-10">
       <h1 className="text-3xl font-bold">Descubrí libros</h1>
-      <div className="flex gap-2">
-        <Input
+
+      {/* Formulario server-side */}
+      <form action="/search" method="get" className="flex gap-2">
+        <input
+          type="text"
+          name="q"
           placeholder="Título, autor o ISBN…"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && go()}
+          className="border rounded px-2 py-1 flex-1"
         />
-        <Button onClick={go}>Buscar</Button>
-      </div>
+        <button
+          type="submit"
+          className="bg-blue-600 text-white px-4 py-2 rounded"
+        >
+          Buscar
+        </button>
+      </form>
+
       <p className="text-sm text-muted-foreground">
-        Ejemplos: <button onClick={() => setQ("harry potter")} className="underline">harry potter</button> ·
-        <button onClick={() => setQ("inauthor:rowling")} className="underline ml-1">inauthor:rowling</button> ·
-        <button onClick={() => setQ("isbn:9780439708180")} className="underline ml-1">isbn:9780439708180</button>
+        Ejemplos:{" "}
+        <a href="/search?q=harry+potter" className="underline">
+          harry potter
+        </a>{" "}
+        ·
+        <a href="/search?q=inauthor:rowling" className="underline ml-1">
+          inauthor:rowling
+        </a>{" "}
+        ·
+        <a href="/search?q=isbn:9780439708180" className="underline ml-1">
+          isbn:9780439708180
+        </a>
       </p>
-      <Link href="/about" className="text-sm underline">Sobre el proyecto</Link>
+
+      {/* <Link href="/about" className="text-sm underline">
+        Sobre el proyecto
+      </Link> */}
     </section>
   );
 }
