@@ -1,14 +1,13 @@
 import Image from "next/image";
 import { getBook } from "@/lib/googleBooks";
 import ReviewSection from "@/components/ui/ReviewSection";
-import DOMPurify from "isomorphic-dompurify";
 
 export default async function BookPage({
   params,
 }: {
   params: { id: string };
 }) {
-  const { id } = params;
+  const { id } = params; // directo, sin await
   const book = await getBook(id);
 
   const v = book.volumeInfo ?? {};
@@ -20,11 +19,6 @@ export default async function BookPage({
     "";
   const img = raw.replace(/^http:\/\//, "https://");
 
-  // 🔹 Sanitizamos la descripción para evitar HTML malformado
-  const safeDescription = v.description
-    ? DOMPurify.sanitize(v.description)
-    : "";
-
   return (
     <section className="space-y-6 py-6">
       <div className="flex flex-col md:flex-row gap-6">
@@ -35,7 +29,6 @@ export default async function BookPage({
               alt={v.title || "cover"}
               fill
               className="object-cover"
-              unoptimized
             />
           )}
         </div>
@@ -56,13 +49,10 @@ export default async function BookPage({
         </div>
       </div>
 
-      {safeDescription && (
+      {v.description && (
         <article className="prose max-w-none">
           <h2>Descripción</h2>
-          <p
-            suppressHydrationWarning
-            dangerouslySetInnerHTML={{ __html: safeDescription }}
-          />
+          <p dangerouslySetInnerHTML={{ __html: v.description }} />
         </article>
       )}
 
