@@ -1,8 +1,12 @@
 import { defineConfig } from "vitest/config";
-import tsconfigPaths from "vite-tsconfig-paths";
+import { fileURLToPath } from "node:url";
 
 export default defineConfig({
-  plugins: [tsconfigPaths()],
+  resolve: {
+    alias: {
+      "@": fileURLToPath(new URL("./src", import.meta.url)), // ajustá si no usás /src
+    },
+  },
   test: {
     environment: "jsdom",
     globals: true,
@@ -15,5 +19,9 @@ export default defineConfig({
       "**/.{idea,git,cache,output,temp}/**",
       "**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build,eslint,prettier}.config.*"
     ],
+  },
+  esbuild: {
+    jsx: "automatic",           // <— IMPORTANTE
+    jsxImportSource: "react",   // <— IMPORTANTE
   },
 });
