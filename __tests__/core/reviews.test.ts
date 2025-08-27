@@ -20,8 +20,8 @@ describe("validateReviewText", () => {
     expect(validateReviewText("   ")).toEqual({ ok: false, error: "empty" });
   });
   it("valida longitudes", () => {
-    expect(validateReviewText("ok")).toEqual({ ok: true });
-    expect(validateReviewText("a".repeat(2))).toEqual({ ok: false, error: "too_short" });
+    expect(validateReviewText("ok")).toEqual({ ok: true }); //2 chars valido con min=2
+    expect(validateReviewText("a".repeat(1))).toEqual({ ok: false, error: "too_short" }); // 1 < 2
     expect(validateReviewText("a".repeat(501))).toEqual({ ok: false, error: "too_long" });
   });
 });
