@@ -1,23 +1,23 @@
 import Image from "next/image";
 import { getBook } from "@/lib/googleBooks";
-import ReviewSection from "@/components/ui/ReviewSection";
 
-export default async function BookPage({
-  params,
-}: {
+type Props = {
   params: { id: string };
-}) {
+};
+
+export default async function BookPage({ params }: Props) {
   const { id } = params; // directo, sin await
   const book = await getBook(id);
 
-  const v = book.volumeInfo ?? {};
+  const v = book?.volumeInfo ?? {};
   const raw =
     v.imageLinks?.large ||
     v.imageLinks?.medium ||
     v.imageLinks?.thumbnail ||
+    v.imageLinks?.smallThumbnail ||
     v.imageLinks?.largeThumbnail ||
     "";
-  const img = raw.replace(/^http:\/\//, "https://");
+  const img = typeof raw === "string" ? raw.replace(/^http:\/\//, "https://") : "";
 
   return (
     <section className="space-y-6 py-6">
@@ -35,31 +35,19 @@ export default async function BookPage({
 
         <div className="space-y-2">
           <h1 className="text-3xl font-bold">{v.title}</h1>
-          <p className="text-muted-foreground">
-            {v.authors?.join(", ") || "Autor desconocido"}
-          </p>
-          <div className="text-sm text-muted-foreground space-x-2">
-            {v.publishedDate && <span>Publicado: {v.publishedDate}</span>}
-            {v.publisher && <span>· {v.publisher}</span>}
-            {v.pageCount && <span>· {v.pageCount} págs.</span>}
-            {v.categories?.length ? (
-              <span>· {v.categories.join(", ")}</span>
-            ) : null}
-          </div>
+          {v.authors?.length ? (
+            <p className="text-muted-foreground">por {v.authors.join(", ")}</p>
+          ) : null}
+          {v.publishedDate ? (
+            <p className="text-sm text-muted-foreground">Publicado: {v.publishedDate}</p>
+          ) : null}
+          {v.description ? (
+            <p className="text-sm leading-6">{v.description}</p>
+          ) : (
+            <p className="text-sm text-muted-foreground">Sin descripción.</p>
+          )}
         </div>
       </div>
-
-      {v.description && (
-        <article className="prose max-w-none">
-          <h2>Descripción</h2>
-          <p dangerouslySetInnerHTML={{ __html: v.description }} />
-        </article>
-      )}
-
-      <section className="mt-8">
-        <h2 className="text-2xl font-semibold mb-4">Reseñas</h2>
-        <ReviewSection bookId={book.id} />
-      </section>
     </section>
   );
 }
