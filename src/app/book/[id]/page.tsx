@@ -5,12 +5,14 @@ import ReviewSection from "@/components/ui/ReviewSection";
 export default async function BookPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = params; // directo, sin await
+  const { id } = await params; // directo, sin await
+  
   const book = await getBook(id);
 
   const v = book.volumeInfo ?? {};
+
   const raw =
     v.imageLinks?.large ||
     v.imageLinks?.medium ||
