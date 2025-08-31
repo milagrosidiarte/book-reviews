@@ -6,15 +6,16 @@ import { searchBooks } from "@/lib/googleBooks";
 export default async function SearchPage({
   searchParams,
 }: {
-  searchParams: { q?: string };
+  searchParams: Promise<{ q?: string }>;
 }) {
-  const q = (searchParams.q || "").trim();
-  const items = q ? await searchBooks(q) : [];
+  const { q = "" } = await searchParams;
+  const query = q.trim();
+  const items = query ? await searchBooks(query) : [];
 
   return (
     <section className="space-y-6 py-6">
       <h2 className="text-2xl font-semibold">
-        {q ? <>Resultados para “{q}”</> : "Sin búsqueda"}
+        {query ? <>Resultados para “{query}”</> : "Sin búsqueda"}
       </h2>
 
       {!q ? (
