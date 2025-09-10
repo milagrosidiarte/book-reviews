@@ -1,6 +1,16 @@
-import { Schema, model, models } from "mongoose";
+import { Schema, model, models, type Types } from "mongoose";
 
-const userSchema = new Schema(
+export interface IUser {
+  _id: Types.ObjectId;
+  email: string;
+  passwordHash: string;
+  name?: string;
+  avatarUrl?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+const userSchema = new Schema<IUser>(
   {
     email: { type: String, required: true, unique: true, index: true },
     passwordHash: { type: String, required: true },
@@ -10,12 +20,4 @@ const userSchema = new Schema(
   { timestamps: true }
 );
 
-export type IUser = {
-  _id: string;
-  email: string;
-  passwordHash: string;
-  name?: string;
-  avatarUrl?: string;
-};
-
-export default models.User || model("User", userSchema);
+export default (models.User as any) || model<IUser>("User", userSchema);
