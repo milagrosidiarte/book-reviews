@@ -17,12 +17,12 @@ export async function POST(req: Request) {
     if (!parsed.success) {
       return NextResponse.json({ error: "Datos inválidos" }, { status: 400 });
     }
+
     const { email, password, name } = parsed.data;
 
     await connectDB();
 
-    const exists = await User.findOne({ email });
-    if (exists) {
+    if (await User.exists({ email })) {
       return NextResponse.json({ error: "Email ya registrado" }, { status: 409 });
     }
 
@@ -30,7 +30,11 @@ export async function POST(req: Request) {
     await User.create({ email, passwordHash, name });
 
     return NextResponse.json({ ok: true }, { status: 201 });
-  } catch (e) {
+  } catch (e: any) {
+    // índice único, por si hay carrera
+    if (e?.code === 11000) {
+      return NextResponse.json({ error: "Email ya registrado" }, { status: 409 });
+    }
     return NextResponse.json({ error: "Error servidor" }, { status: 500 });
   }
 }

@@ -1,40 +1,39 @@
 import { NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { connectDB } from "@/lib/db";
 import Favorite from "@/models/Favorite";
-import { requireUser } from "@/lib/auth-helpers";
 
-export async function POST(
-  _req: Request,
-  { params }: { params: { id: string } }
-) {
-  const authUser = await requireUser();
-  if (!authUser) return NextResponse.json({ error: "No auth" }, { status: 401 });
+type Ctx = { params: { id: string } };
 
+// POST = agregar si no existe → 201 (o 200 si ya estaba)
+export async function POST(_req: Request, { params }: Ctx) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
     await connectDB();
-    const fav = await Favorite.findOneAndUpdate(
-      { userId: authUser.userId, volumeId: params.id },
-      {}, // no hay más campos
-      { upsert: true, new: true, setDefaultsOnInsert: true }
-    );
-    return NextResponse.json({ favorite: fav }, { status: 201 });
-  } catch {
+
+    const existing = await Favorite.findOne({ userId: session.user.id, volumeId: params.id });
+    if (existing) {
+      return NextResponse.json({ ok: true }, { status: 200 });
+    }
+    await Favorite.create({ userId: session.user.id, volumeId: params.id });
+    return NextResponse.json({ ok: true }, { status: 201 });
+  } catch (e) {
     return NextResponse.json({ error: "Error servidor" }, { status: 500 });
   }
 }
 
-export async function DELETE(
-  _req: Request,
-  { params }: { params: { id: string } }
-) {
-  const authUser = await requireUser();
-  if (!authUser) return NextResponse.json({ error: "No auth" }, { status: 401 });
-
+// DELETE = quitar → 200 siempre que termine bien
+export async function DELETE(_req: Request, { params }: Ctx) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
     await connectDB();
-    await Favorite.findOneAndDelete({ userId: authUser.userId, volumeId: params.id });
-    return NextResponse.json({ ok: true });
-  } catch {
+    await Favorite.deleteOne({ userId: session.user.id, volumeId: params.id });
+    return NextResponse.json({ ok: true }, { status: 200 });
+  } catch (e) {
     return NextResponse.json({ error: "Error servidor" }, { status: 500 });
   }
 }

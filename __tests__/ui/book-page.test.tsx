@@ -1,5 +1,15 @@
+import { vi } from "vitest";
+
+// Mock de auth para pruebas de UI
+vi.mock("@/auth", () => ({
+  auth: vi.fn().mockResolvedValue(null), // simula "no logueado"
+  signIn: vi.fn(),
+  signOut: vi.fn(),
+}));
+
+
 import { render, screen } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 
 vi.mock("next/image");
 

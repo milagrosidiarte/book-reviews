@@ -1,4 +1,5 @@
 // setupTests.ts
+import "@testing-library/jest-dom/vitest";
 import { afterEach } from "vitest";
 
 // Env mínimos para handlers/SSR
