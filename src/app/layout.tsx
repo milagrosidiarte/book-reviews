@@ -19,11 +19,6 @@ export default function RootLayout({
       <body>
         <SiteHeader />
         <header className="border-b">
-          <nav className="max-w-5xl mx-auto flex items-center gap-6 p-4">
-            <Link href="/about" className="text-sm text-muted-foreground hover:underline">
-              About
-            </Link>
-          </nav>
         </header>
         <main className="max-w-5xl mx-auto p-4">{children}</main>
         <ToasterProvider />
