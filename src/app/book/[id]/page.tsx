@@ -16,7 +16,9 @@ export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ id: string }> };
 
-// ============== Server Actions ==============
+
+// Server Actions (SSR)
+
 
 // Crear/actualizar TU reseña (upsert)
 async function upsertReviewAction(volumeId: string, formData: FormData) {
@@ -47,21 +49,12 @@ async function upsertReviewAction(volumeId: string, formData: FormData) {
   revalidatePath(`/book/${volumeId}`);
 }
 
-// Borrar TU reseña
-async function deleteReviewAction(volumeId: string, reviewId: string) {
-  "use server";
-  const session = await auth();
-  if (!session?.user?.id) redirect(`/login?next=/book/${volumeId}`);
-
-  await connectDB();
-  // Solo borra si sos el dueño
-  await Review.findOneAndDelete({ _id: reviewId, userId: session.user.id });
-
-  revalidatePath(`/book/${volumeId}`);
-}
-
 // Votar (+1/-1) una reseña
-async function voteAction(volumeId: string, reviewId: string, dir: "up" | "down") {
+async function voteAction(
+  volumeId: string,
+  reviewId: string,
+  dir: "up" | "down"
+) {
   "use server";
   const session = await auth();
   if (!session?.user?.id) redirect(`/login?next=/book/${volumeId}`);
@@ -84,7 +77,11 @@ async function toggleFavoriteAction(volumeId: string) {
   if (!session?.user?.id) redirect(`/login?next=/book/${volumeId}`);
 
   await connectDB();
-  const existed = await Favorite.findOne({ userId: session.user.id, volumeId });
+  const existed = await Favorite.findOne({
+    userId: session.user.id,
+    volumeId,
+  });
+
   if (existed) {
     await Favorite.deleteOne({ _id: existed._id });
   } else {
@@ -94,7 +91,10 @@ async function toggleFavoriteAction(volumeId: string) {
   revalidatePath(`/book/${volumeId}`);
 }
 
-// ============== Page (SSR) ==============
+
+// Page SSR
+
+
 export default async function BookPage({ params }: Props) {
   const { id } = await params; // Google Books volumeId
   const session = await auth();
@@ -129,7 +129,7 @@ export default async function BookPage({ params }: Props) {
       ? !!(await Favorite.findOne({ userId: session.user.id, volumeId: id }).lean())
       : false;
 
-  // Votos agregados y tu voto
+  // Votos: agregados y tu voto por review
   type VoteAgg = { _id: any; score: number; up: number; down: number };
   type VoteDoc = { reviewId: any; value: 1 | -1 };
 
@@ -139,24 +139,35 @@ export default async function BookPage({ params }: Props) {
 
   if (reviewIds.length > 0) {
     const [agg, myVotes] = await Promise.all([
+      // agregados por reviewId
       Vote.aggregate<VoteAgg>([
         { $match: { reviewId: { $in: reviewIds } } },
         {
           $group: {
             _id: "$reviewId",
             score: { $sum: "$value" },
-            up: { $sum: { $cond: [{ $eq: ["$value", 1] }, 1, 0] } },
-            down: { $sum: { $cond: [{ $eq: ["$value", -1] }, 1, 0] } },
+            up: {
+              $sum: { $cond: [{ $eq: ["$value", 1] }, 1, 0] },
+            },
+            down: {
+              $sum: { $cond: [{ $eq: ["$value", -1] }, 1, 0] },
+            },
           },
         },
       ]),
+      // tus votos
       session?.user?.id
-        ? Vote.find({ userId: session.user.id, reviewId: { $in: reviewIds } }).lean<VoteDoc[]>()
+        ? Vote.find({ userId: session.user.id, reviewId: { $in: reviewIds } })
+            .lean<VoteDoc[]>()
         : Promise.resolve([] as VoteDoc[]),
     ]);
 
     for (const a of agg) {
-      scoreMap.set(String(a._id), { score: a.score ?? 0, up: a.up ?? 0, down: a.down ?? 0 });
+      scoreMap.set(String(a._id), {
+        score: a.score ?? 0,
+        up: a.up ?? 0,
+        down: a.down ?? 0,
+      });
     }
     for (const mv of myVotes) {
       myVoteMap.set(String(mv.reviewId), mv.value);
@@ -168,12 +179,21 @@ export default async function BookPage({ params }: Props) {
       {/* Cabecera libro */}
       <div className="flex flex-col md:flex-row gap-6">
         <div className="relative w-44 h-64 bg-muted rounded-md overflow-hidden shrink-0">
-          {img && <Image src={img} alt={v.title || "cover"} fill className="object-cover" />}
+          {img && (
+            <Image
+              src={img}
+              alt={v.title || "cover"}
+              fill
+              className="object-cover"
+            />
+          )}
         </div>
 
         <div className="flex-1 space-y-2">
           <h1 className="text-3xl font-bold">{v.title}</h1>
-          <p className="text-muted-foreground">{v.authors?.join(", ") || "Autor desconocido"}</p>
+          <p className="text-muted-foreground">
+            {v.authors?.join(", ") || "Autor desconocido"}
+          </p>
           <div className="text-sm text-muted-foreground space-x-2">
             {v.publishedDate && <span>Publicado: {v.publishedDate}</span>}
             {v.publisher && <span>· {v.publisher}</span>}
@@ -184,7 +204,11 @@ export default async function BookPage({ params }: Props) {
           {/* Botón Favorito */}
           {session?.user?.id ? (
             <form action={toggleFavoriteAction.bind(null, id)}>
-              <Button type="submit" variant={isFav ? "secondary" : "outline"} size="sm">
+              <Button
+                type="submit"
+                variant={isFav ? "secondary" : "outline"}
+                size="sm"
+              >
                 {isFav ? "Quitar de Favoritos" : "Agregar a Favoritos"}
               </Button>
             </form>
@@ -209,14 +233,15 @@ export default async function BookPage({ params }: Props) {
         <h2 className="text-2xl font-semibold">Reseñas</h2>
 
         {reviews.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Sé el primero en reseñar este libro.</p>
+          <p className="text-sm text-muted-foreground">
+            Sé el primero en reseñar este libro.
+          </p>
         ) : (
           <ul className="space-y-3">
             {reviews.map((r) => {
               const key = String(r._id);
               const stats = scoreMap.get(key) ?? { score: 0, up: 0, down: 0 };
               const myVote = myVoteMap.get(key); // 1 | -1 | undefined
-              const itsMine = session?.user?.id && String(r.userId) === session.user.id;
 
               return (
                 <li key={key} className="border rounded p-3 space-y-2">
@@ -225,8 +250,8 @@ export default async function BookPage({ params }: Props) {
                   </div>
                   {r.body && <p className="text-sm">{r.body}</p>}
 
-                  {/* Acciones: Votos + (si es tuya) Editar/Borrar */}
-                  <div className="flex flex-wrap items-center gap-2">
+                  {/* Votos */}
+                  <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground">
                       Puntuación: {stats.score} ({stats.up}↑ / {stats.down}↓)
                     </span>
@@ -244,6 +269,7 @@ export default async function BookPage({ params }: Props) {
                             👍
                           </Button>
                         </form>
+
                         <form action={voteAction.bind(null, id, key, "down")}>
                           <Button
                             type="submit"
@@ -261,22 +287,6 @@ export default async function BookPage({ params }: Props) {
                         <Link href={`/login?next=/book/${id}`}>Iniciá sesión para votar</Link>
                       </Button>
                     )}
-
-                    {itsMine && (
-                      <>
-                        {/* Editar: te lleva al formulario de "Tu reseña" prellenado */}
-                        <Button asChild variant="outline" size="sm">
-                          <a href="#my-review-form">Editar</a>
-                        </Button>
-
-                        {/* Borrar tu reseña */}
-                        <form action={deleteReviewAction.bind(null, id, key)}>
-                          <Button type="submit" variant="destructive" size="sm">
-                            Borrar
-                          </Button>
-                        </form>
-                      </>
-                    )}
                   </div>
                 </li>
               );
@@ -286,7 +296,7 @@ export default async function BookPage({ params }: Props) {
 
         {/* Form SSR para crear/editar tu reseña */}
         {session?.user?.id ? (
-          <div id="my-review-form" className="border rounded p-4 space-y-3">
+          <div className="border rounded p-4 space-y-3">
             <h3 className="font-semibold">Tu reseña</h3>
             <form action={upsertReviewAction.bind(null, id)} className="space-y-3">
               <div className="space-y-1">
