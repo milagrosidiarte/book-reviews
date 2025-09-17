@@ -16,13 +16,14 @@ export function middleware(req: NextRequest) {
 
   // Cookies de sesión posibles de Auth.js/NextAuth
   const sessionCookie =
+    req.cookies.get("__Secure-authjs.session-token")?.value ||
     req.cookies.get("__Secure-next-auth.session-token")?.value ||
     req.cookies.get("next-auth.session-token")?.value ||
     req.cookies.get("authjs.session-token")?.value;
 
   if (!sessionCookie) {
     return NextResponse.redirect(
-      new URL(`/login?next=${encodeURIComponent(url.pathname)}`, url),
+      new URL(`/login?next=${encodeURIComponent(url.pathname + url.search)}`, url),
     );
   }
   return NextResponse.next();
