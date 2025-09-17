@@ -4,6 +4,8 @@ import { connectDB } from "@/lib/db";
 import Vote from "@/models/Vote";
 import { requireUser } from "@/lib/auth-helpers";
 
+export const runtime = "nodejs";
+
 const VoteSchema = z.object({
   value: z.enum(["up", "down"]),
 });

@@ -40,7 +40,9 @@ describe("middleware (auth)", () => {
   });
 
   it("deja pasar cuando hay sesión", async () => {
-    const req = new NextRequest("http://localhost/profile?logged=1");
+    const req = new NextRequest("http://localhost/profile", {
+      headers: { cookie: "authjs.session-token=fake.jwt.token" },
+    });
     const res = (await middleware(req as any)) as any;
 
     expect(res.headers.get("location")).toBeNull();

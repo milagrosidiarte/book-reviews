@@ -4,6 +4,8 @@ import { connectDB } from "@/lib/db";
 import User from "@/models/User";
 import { hashPassword } from "@/lib/password";
 
+export const runtime = "nodejs";
+
 const RegisterSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),

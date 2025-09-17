@@ -3,6 +3,8 @@ import { connectDB } from "@/lib/db";
 import Favorite from "@/models/Favorite";
 import { requireUser } from "@/lib/auth-helpers";
 
+export const runtime = "nodejs";
+
 export async function GET() {
   const authUser = await requireUser();
   if (!authUser) return NextResponse.json({ error: "No auth" }, { status: 401 });

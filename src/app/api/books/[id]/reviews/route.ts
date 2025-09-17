@@ -4,6 +4,8 @@ import Review from "@/models/Review";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth-helpers";
 
+export const runtime = "nodejs";
+
 const ReviewCreateSchema = z.object({
   rating: z.number().int().min(1).max(5),
   title: z.string().max(120).optional(),

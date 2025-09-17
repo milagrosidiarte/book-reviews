@@ -3,6 +3,8 @@ import { auth } from "@/auth";
 import { connectDB } from "@/lib/db";
 import Favorite from "@/models/Favorite";
 
+export const runtime = "nodejs";
+
 type Ctx = { params: { id: string } };
 
 // POST = agregar si no existe → 201 (o 200 si ya estaba)
