@@ -6,10 +6,9 @@ import Favorite from "@/models/Favorite";
 
 export const runtime = "nodejs";
 
-export async function POST(
-  _req: Request,
-  { params }: { params: { id: string } }   // tipo inline, no alias
-) {
+export async function POST(_req: Request, ctx: any) {
+  const { id } = (ctx.params ?? {}) as { id: string };
+
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -20,24 +19,23 @@ export async function POST(
 
     const existing = await Favorite.findOne({
       userId: session.user.id,
-      volumeId: params.id,
+      volumeId: id,
     });
 
     if (existing) {
       return NextResponse.json({ ok: true }, { status: 200 });
     }
 
-    await Favorite.create({ userId: session.user.id, volumeId: params.id });
+    await Favorite.create({ userId: session.user.id, volumeId: id });
     return NextResponse.json({ ok: true }, { status: 201 });
   } catch {
     return NextResponse.json({ error: "Error servidor" }, { status: 500 });
   }
 }
 
-export async function DELETE(
-  _req: Request,
-  { params }: { params: { id: string } }   // mismo ajuste
-) {
+export async function DELETE(_req: Request, ctx: any) {
+  const { id } = (ctx.params ?? {}) as { id: string };
+
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -45,10 +43,7 @@ export async function DELETE(
     }
 
     await connectDB();
-    await Favorite.deleteOne({
-      userId: session.user.id,
-      volumeId: params.id,
-    });
+    await Favorite.deleteOne({ userId: session.user.id, volumeId: id });
 
     return NextResponse.json({ ok: true }, { status: 200 });
   } catch {
