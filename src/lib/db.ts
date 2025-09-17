@@ -1,18 +1,23 @@
+// src/lib/db.ts
+import "server-only";
 import mongoose from "mongoose";
-
-const MONGODB_URI = process.env.MONGODB_URI!;
-if (!MONGODB_URI) throw new Error("Missing MONGODB_URI");
 
 type GlobalWithMongoose = typeof globalThis & {
   _mongooseConn?: Promise<typeof mongoose>;
 };
 
-let globalWithMongoose = global as GlobalWithMongoose;
+const globalWithMongoose = global as GlobalWithMongoose;
 
 export function connectDB() {
   if (!globalWithMongoose._mongooseConn) {
-    globalWithMongoose._mongooseConn = mongoose.connect(MONGODB_URI, {
+    const uri = process.env.MONGODB_URI;
+    if (!uri) {
+      throw new Error("Falta MONGODB_URI en variables de entorno");
+    }
+
+    globalWithMongoose._mongooseConn = mongoose.connect(uri, {
       maxPoolSize: 10,
+      dbName: "bookreviews", // opcional
     });
   }
   return globalWithMongoose._mongooseConn;
